@@ -1,0 +1,38 @@
+<odoo>
+    <record id="library_member_report_wizard" model="ir.ui.view">
+        <field name="name">Member Report Wzard</field>
+        <field name="model">member.report</field>
+        <field name="arch" type="xml">
+            <form string="Member Report">
+                <group string="Report Filters">
+                    <group>
+                        <field name="membership_type"/>
+                    </group>
+                    <group>
+                        <field name="block_status"/>
+                    </group>
+
+                </group>
+                <footer>
+                    <button name="get_report" string="Print PDF Report" type="object" class="oe_highlight"/>
+                    <button name="get_xlsx_report" string="Print XLSX Report" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_member_report_wizard" model="ir.actions.act_window">
+        <field name="name">Member Report</field>
+        <field name="res_model">member.report</field>
+        <field name="type">ir.actions.act_window</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="library_member_report_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="library_member_report" name="Member Report" action="action_member_report_wizard"
+              parent="library_reports" sequence="2"/>
+
+</odoo>

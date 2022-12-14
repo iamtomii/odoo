@@ -1,0 +1,43 @@
+<odoo>
+    <record id="library_book_report_wizard" model="ir.ui.view">
+        <field name="name">Issued Book Report Wzard</field>
+        <field name="model">books.report</field>
+        <field name="arch" type="xml">
+            <form string="Books Report">
+                 <form string="Import Book">
+                    <p class="oe_grey">
+                        Do you want to print the PDF report ?
+                    </p>
+                </form>
+                <footer>
+                    <button name="get_report" string="Print PDF" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_book_report_wizard" model="ir.actions.act_window">
+        <field name="name">Books Report</field>
+        <field name="res_model">books.report</field>
+        <field name="type">ir.actions.act_window</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="library_book_report_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+<!--    <record id="action_book_report_function" model="ir.actions.server">-->
+<!--        <field name="name">Books Report</field>-->
+<!--        <field name="model_id" ref="model_books_report"/>-->
+<!--        <field name="binding_model_id" ref="model_books_report"/>-->
+<!--        <field name="state">code</field>-->
+<!--        <field name="code">-->
+<!--            action = model.get_report()-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <menuitem id="library_book_report" name="Book Report(PDF)" action="action_book_report_wizard"
+              parent="library_reports" sequence="2"/>
+
+</odoo>

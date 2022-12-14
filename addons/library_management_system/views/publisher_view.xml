@@ -1,0 +1,204 @@
+<odoo>
+    <record id="book_publisher_form_view" model="ir.ui.view">
+        <field name="name">book.publisher.form</field>
+        <field name="model">book.publisher</field>
+        <field name="arch" type="xml">
+            <form string="Publisher">
+                <sheet>
+                    <div class="oe_button_box" style="" name="buttons">
+                        <!-- status info for written books by an author -->
+                        <button class="oe_stat_button" type="object" icon="fa-book" name="view_published_books">
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_value" >
+                                    <field name="publisher_book_qty" widget="statinfo" nolabel="1" readonly="1"
+                                    force_save="1"/>
+                                </span>
+                                <span class="o_stat_text">
+                                    Books
+                                </span>
+                            </div>
+                        </button>
+                        <!-- status info for related authors for publisher -->
+                        <button class="oe_stat_button" type="object" icon="fa-user" name="view_related_authors">
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_value" >
+                                    <field name="related_author_qty" widget="statinfo" nolabel="1" readonly="1"
+                                    force_save="1"/>
+                                </span>
+                                <span class="o_stat_text">
+                                    Authors
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                    <field name="image_medium" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="publisher_name" string="Publisher Name"/>
+                        <h1>
+                            <field name="publisher_name" placeholder="Publisher Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Publisher details">
+                            <field name="country_origin"/>
+                            <field name="founder"/>
+                        </group>
+                        <group string="Extra details">
+                            <field name="website"/>
+                            <field name="founded"/>
+                        </group>
+                    </group>
+                        <group string="Awards">
+                            <field name="publisher_awards" nolabel="1">
+                                <kanban>
+                                    <field name="id"/>
+                                    <field name="award_id"/>
+                                    <field name="image_medium"/>
+                                    <field name="country"/>
+                                    <field name="awarded_by"/>
+                                    <field name="ribbon"/>
+                                    <field name="next"/>
+                                    <field name="lower"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_global_click">
+                                                <div class="o_kanban_image">
+                                                    <img t-att-src="kanban_image('publisher.awards', 'image_medium', record.id.raw_value)"
+                                                         alt="Award"/>
+                                                </div>
+                                                <div class="oe_kanban_details">
+                                                    <div class="row">
+                                                        <div class="col-8">
+                                                            <strong class="o_kanban_record_title">
+                                                                <b>
+                                                                    <field name="award_id"/>
+                                                                </b>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                    <div name="tags" style="height: 18px;overflow: hidden;color: #868585;">
+                                                        <field name="country"/>
+                                                    </div>
+                                                    <div name="tags">
+                                                        <span style="color: #b3acac;font-size: 10px;">Next :</span>
+                                                        <field name="next"/>
+                                                        <span style="color: #b3acac;font-size: 10px;">Lower :</span>
+                                                        <field name="lower"/>
+                                                    </div>
+                                                    <div name="tags" style="height: 20px;width:auto;">
+                                                        <img t-att-src="kanban_image('publisher.awards', 'ribbon', record.id.raw_value)"
+                                                         alt="Award" style="height:15px !important;"/>
+                                                    </div>
+                                                    <div name="tags"/>
+                                                    <ul>
+                                                        <li>
+                                                            <field name="awarded_by"/>
+                                                        </li>
+                                                    </ul>
+
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                                <form string="Awards">
+                                    <sheet>
+                                        <group>
+                                            <group><field name="award_id"/></group>
+                                            <group><field name="awarded_on"/></group>
+                                        </group>
+                                        <field name="image_medium" widget="image" class="oe_avatar"/>
+                                        <div class="oe_title">
+                                            <label class="oe_edit_only" for="award_name" string="Award Name"/>
+                                            <h1>
+                                                <field name="award_name" placeholder="Award Name"/>
+                                            </h1>
+                                        </div>
+                                        <group string="Details">
+                                            <group>
+                                                <field name="country"/>
+                                                <field name="awarded_by"/>
+                                                <field name="ribbon" widget="image" class="oe_avatar"/>
+                                            </group>
+                                            <group>
+                                                <field name="next"/>
+                                                <field name="lower"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="book_publisher_tree_view" model="ir.ui.view">
+        <field name="name">book.publisher.tree</field>
+        <field name="model">book.publisher</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="publisher_name"/>
+                <field name="founder"/>
+                <field name="country_origin"/>
+                <field name="founded"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="book_publisher_kanban_view" model="ir.ui.view">
+        <field name="name">book.publisher.kanban</field>
+        <field name="model">book.publisher</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="image_medium"/>
+                <field name="publisher_name"/>
+                <field name="founder"/>
+                <field name="country_origin"/>
+                <field name="founded"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('book.publisher', 'image_medium', record.id.raw_value)" alt="Publisher"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <b><field name="publisher_name"/></b>
+                                </strong>
+                                <div>
+                                    <field name="country_origin"/>
+                                </div>
+                                <div name="tags"/>
+                                <ul>
+                                    <li><field name="founder" /></li>
+                                </ul>
+                                <div name="tags"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+
+
+    <record id="action_library_publishers" model="ir.actions.act_window">
+        <field name="name">Publishers</field>
+        <field name="res_model">book.publisher</field>
+        <field name="view_mode">kanban,tree,form</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to define a new publisher.
+            </p>
+        </field>
+    </record>
+
+    <menuitem action="action_library_publishers" parent="library_management_book_menu"
+              id="library_management_publishers"
+              name="Publishers" sequence="3"/>
+</odoo>

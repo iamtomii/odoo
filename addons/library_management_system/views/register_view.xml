@@ -1,0 +1,345 @@
+<odoo>
+    <record id="register_form_view" model="ir.ui.view">
+        <field name="name">library.register.form</field>
+        <field name="model">book.register</field>
+        <field name="arch" type="xml">
+            <form string="Issue Book">
+                <header>
+                    <button string="Issue Book" type="object" name="issue_book"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|',('register_status','not in',('draft')),
+                                ('membership_expired','=', True)]}"/>
+                    <button string="Return Book" type="object" name="return_book"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('register_status','in',('draft','returned'))]}"/>
+                    <button string="Renew Book" type="object" name="renew_book"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('register_status','in',('draft','returned'))]}"/>
+                    <button string="Invoice Due" type="object" name="invoice_due_amount"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|',('register_status','not in',('expired', 'issued')),
+                            ('book_due','&lt;', 1)]}"/>
+                    <field name="register_status" widget="statusbar" statusbar_visible="draft,issued,returned,expired"/>
+                </header>
+                <div class="alert alert-warning" role="alert"
+                     style="height: 40px;left: 10px;right: 10px; margin-bottom:0px;text-align: left;"
+                     attrs="{'invisible':['|',('book_qty_available','&gt;',0),('book_selected','=', False)]}">
+                    There is no copies left for the selected book to issue, kindly select another book and continue..
+                </div>
+                <sheet>
+                    <field name="book_qty_available" invisible="1"/>
+                    <field name="book_selected" invisible="1"/>
+                    <field name="block_status" invisible="1"/>
+                    <div class="oe_button_box" style="" name="buttons">
+                        <!-- status info for the selected book quantity available -->
+                        <button class="oe_stat_button" type="object" icon="fa-book" name="action_view_book"
+                                attrs="{'invisible':['|',('book_qty_available','&lt;',0),('book_qty_available','=',0),
+                                ('book_selected','=', False)]}">
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="book_qty_available" widget="statinfo" nolabel="1" readonly="1"
+                                           force_save="1"/>
+                                </span>
+                                <span class="o_stat_text">
+                                    Available
+                                </span>
+                            </div>
+                        </button>
+                        <!-- status info for due amount on expiry -->
+                        <button class="oe_stat_button" type="object" icon="fa-money" name="invoice_due_amount"
+                                attrs="{'invisible':[('register_status','not in',('expired', 'returned'))]}">
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="book_due" widget="monetary" nolabel="1" readonly="1"
+                                           force_save="1"/>
+                                </span>
+                                <span class="o_stat_text">
+                                    Due / Rent
+                                </span>
+                            </div>
+                        </button>
+                        <!-- status info for due amount invoiced -->
+                        <button class="oe_stat_button" type="object" icon="fa-usd" name="view_due_invoice"
+                                attrs="{'invisible':['|',('invoiced_due','&lt;',0),
+                                ('register_status','not in',('expired', 'returned'))]}">
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="invoiced_due" widget="monetary" nolabel="1" readonly="1"
+                                           force_save="1"/>
+                                </span>
+                                <span class="o_stat_text">
+                                    Invoiced
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title" style="margin-bottom: 15px;">
+                        <h3>
+                            <field name="register_sequence" readonly="1" force_save="1"/>
+                        </h3>
+                    </div>
+
+                    <field name="book_image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="register_book_name" string="Book Name"/>
+                        <h1>
+                            <field name="register_book_name" placeholder="Book Name"
+                                   attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                        </h1>
+                        <div name="options">
+                            <div>
+                                <label for="register_author_name"/>
+                                <span style="margin-left:8px;margin-right:3px;">:</span>
+                                <field name="register_author_name" widget="many2many_tags" force_save="1"/>
+                            </div>
+                            <div>
+                                <label for="register_edition"/>
+                                <span style="margin-left:8px;margin-right:3px;">:</span>
+                                <field name="register_edition" force_save="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Book details">
+                            <group>
+                                <field name="register_isbn_number"
+                                       attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                                <field name="register_isbn_13_number"
+                                       attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                            </group>
+                            <group>
+                                <button string="Find Book" type="object" name="find_book" class="oe_highlight"
+                                        attrs="{'invisible':[('register_status','not in',('draft'))]}"/>
+                            </group>
+                        </group>
+                        <group string="Extra details">
+                            <field name="issued_date" style="width:130px;"
+                                   attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                            <field name="calc_return_date" style="width:130px;"
+                                   attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                            <field name="returned_date" style="width:130px;"
+                                   attrs="{'invisible':[('register_status','not in',('returned'))],
+                                   'readonly':[('register_status','in',('returned'))]}"/>
+                            <field name="responsive_person" force_save="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="register_book_title" placeholder="Title of the book" force_save="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Member">
+                            <group string="Member details">
+                                <group>
+                                    <field name="register_member" domain="[('is_a_member', '=', True)]"
+                                           attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                                    <field name="current_book_count" readonly="1"/>
+                                    <field name="membership_expired" invisible="1"/>
+                                    <field name="book_due" invisible="1"/>
+                                </group>
+                                <group>
+                                    <group>
+                                        <field name="register_member_id" placeholder="Member ID"
+                                               attrs="{'readonly':[('register_status','not in',('draft'))]}"/>
+                                    </group>
+                                    <group>
+                                        <button string="Find Member" type="object" name="find_member"
+                                                class="oe_highlight"
+                                                attrs="{'invisible':[('register_status','not in',('draft'))]}"/>
+                                    </group>
+                                </group>
+                                <div class="alert alert-warning" role="alert"
+                                     style="height: 40px;left: 156px;margin-bottom: 0px;text-align: left;"
+                                     attrs="{'invisible':[('membership_expired','=',False)]}">
+                                    Membership has been expired!
+                                </div>
+                                <div class="alert alert-warning" role="alert"
+                                     style="height: 40px;left: 156px;margin-bottom: 0px;text-align: left;
+                                            display: block;margin-top: 5px;"
+                                     attrs="{'invisible':[('block_status','=',False)]}">
+                                    The selected member has been blocked!
+                                </div>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <group string="Notes">
+                                <field name="register_note"/>
+                            </group>
+                        </page>
+                    </notebook>
+
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="register_search_view" model="ir.ui.view">
+        <field name="name">library.register.search</field>
+        <field name="model">book.register</field>
+        <field name="arch" type="xml">
+            <search string="Search in register">
+                <field name="register_book_name"/>
+                <field name="register_member"/>
+                <field name="register_sequence"/>
+                <field name="register_isbn_number"/>
+                <field name="register_isbn_13_number"/>
+
+                <filter string="Draft" name="Service Status" domain="[('register_status', '=', 'draft')]"/>
+                <filter string="Issued" name="Service Status" domain="[('register_status', '=', 'issued')]"/>
+                <filter string="Returned" name="Service Status" domain="[('register_status', '=', 'returned')]"/>
+                <filter string="Expired" name="Service Status" domain="[('register_status', '=', 'expired')]"/>
+
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="State" name="register_status" domain="[]"
+                            context="{'group_by': 'register_status'}"/>
+                    <filter string="Return Date" name="calc_return_date" domain="[]"
+                            context="{'group_by': 'calc_return_date'}"/>
+                    <filter string="Issued Date" name="issued_date" domain="[]" context="{'group_by': 'issued_date'}"/>
+                    <filter string="Book Name" name="register_book_name" domain="[]"
+                            context="{'group_by': 'register_book_name'}"/>
+                    <filter string="Member" name="register_member" domain="[]"
+                            context="{'group_by': 'register_member'}"/>
+                    <filter string="Member ID" name="register_member_id" domain="[]"
+                            context="{'group_by': 'register_member_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="register_tree_view" model="ir.ui.view">
+        <field name="name">book.register.tree</field>
+        <field name="model">book.register</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="register_status == 'expired'" decoration-success="register_status == 'issued'"
+                  decoration-muted="register_status=='returned'" default_order="register_sequence desc">
+                <field name="register_sequence"/>
+                <field name="register_book_name"/>
+                <field name="register_edition"/>
+                <field name="register_isbn_number"/>
+                <field name="register_member"/>
+                <field name="issued_date"/>
+                <field name="calc_return_date"/>
+                <field name="register_status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="book_register_graph" model="ir.ui.view">
+        <field name="name">book.register.graph</field>
+        <field name="model">book.register</field>
+        <field name="arch" type="xml">
+            <graph string="Rregister Graph">
+                <field name="issued_date" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="book_register_kanban_view" model="ir.ui.view">
+        <field name="name">book.register.kanban</field>
+        <field name="model">book.register</field>
+        <field name="arch" type="xml">
+            <kanban default_order="register_sequence desc">
+                <field name="id"/>
+                <field name="register_sequence"/>
+                <field name="register_book_name"/>
+                <field name="register_member"/>
+                <field name="issued_date"/>
+                <field name="calc_return_date"/>
+                <field name="returned_date"/>
+                <field name="register_status"/>
+                <field name="responsive_person"/>
+                <field name="book_due"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('book.register', 'book_image', record.id.raw_value)"
+                                     alt="Register"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <div class="row">
+                                    <div class="col-8" style="font-size: 13px;">
+                                        <strong class="o_kanban_record_title">
+                                            <b>
+                                                <field name="register_sequence"/>
+                                            </b>
+                                        </strong>
+                                    </div>
+                                    <div class="col-4" style="padding: 0;">
+                                        <div name="tags" t-if="record.register_status.raw_value ==='draft'"
+                                        style="width: 65px;text-align: center;border-radius: 5px;
+                                        padding: 3px 0px 3px 1px;font-size: 10px;color: #fff;background-color: #cecece;">
+                                            Draft
+                                        </div>
+                                        <div name="tags" t-if="record.register_status.raw_value ==='issued'"
+                                        style="width: 65px;text-align: center;border-radius: 5px;
+                                        padding: 3px 0px 3px 1px;font-size: 10px;color: #fff;background-color: #92c8f4;">
+                                            Issued
+                                        </div>
+                                        <div name="tags" t-if="record.register_status.raw_value ==='expired'"
+                                        style="width: 65px;text-align: center;border-radius: 5px;
+                                        padding: 3px 0px 3px 1px;font-size: 10px;color: #fff;background-color: #ea8e70;">
+                                            Expired
+                                        </div>
+                                        <div name="tags" t-if="record.register_status.raw_value ==='returned'"
+                                        style="width: 65px;text-align: center;border-radius: 5px;
+                                        padding: 3px 0px 3px 1px;font-size: 10px;color: #fff;background-color: #91dd9e;">
+                                            Returned
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div name="tags" style="height: 18px;overflow: hidden;font-weight: bold;color: #868585;">
+                                    <span style="font-size: 10px;"><field name="register_book_name"/></span>
+                                </div>
+                                <div name="tags">
+                                    <span style="color: #b3acac;font-size: 10px;">Issue :</span>
+                                    <span style="font-size: 10px;"><field name="issued_date"/></span>
+                                    <span style="color: #b3acac;font-size: 10px;">Exp :</span>
+                                    <span style="font-size: 10px;"><field name="calc_return_date"/></span>
+                                </div>
+                                <div name="tags" >
+                                    <span style="color: #b3acac;font-size: 10px;">
+                                        Returned :
+                                    </span>
+                                    <field name="returned_date"/>
+                                </div>
+                                <div name="tags"/>
+                                <ul>
+                                    <li>
+                                        <field name="register_member"/>
+                                    </li>
+                                </ul>
+
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_library_register" model="ir.actions.act_window">
+        <field name="name">Issue Book</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">book.register</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="view_mode">tree,form,kanban,pivot,graph</field>
+        <field name="view_id" ref="register_tree_view"/>
+        <field name="search_view_id" ref="register_search_view"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to issue a new Books.
+            </p>
+        </field>
+    </record>
+
+    <menuitem action="action_library_register" id="library_management_register" parent="library_main_menu"
+              name="Issue Book" sequence="1"/>
+</odoo>

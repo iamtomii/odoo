@@ -1,0 +1,45 @@
+<odoo>
+    <record id="library_issued_book_report_wizard" model="ir.ui.view">
+        <field name="name">Issued Book Report Wzard</field>
+        <field name="model">issued.books.report</field>
+        <field name="arch" type="xml">
+            <form string="Issued Books Report">
+                <group string="Report Filters">
+                    <group>
+                        <field name="date_start"/>
+                        <field name="book_name"/>
+                        <field name="status"/>
+                    </group>
+                    <group>
+                        <field name="date_end"/>
+                        <field name="member_id"/>
+                        <field name="responsive"/>
+                    </group>
+
+                </group>
+                <footer>
+                    <button name="get_report" string="Print PDF Report" type="object" class="oe_highlight"/>
+                    <button name="get_xlsx_report" string="Print XLSX Report" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_issued_book_report_wizard" model="ir.actions.act_window">
+        <field name="name">Issued Book Report</field>
+        <field name="res_model">issued.books.report</field>
+        <field name="type">ir.actions.act_window</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="library_issued_book_report_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="library_reports" name="Reports" parent="library_main_menu" sequence="8"
+              groups="library_group_manager"/>
+
+    <menuitem id="library_issued_book_report" name="Issued Book" action="action_issued_book_report_wizard"
+              parent="library_reports" sequence="1"/>
+
+</odoo>

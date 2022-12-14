@@ -1,0 +1,83 @@
+<odoo>
+
+    <record id="membership_types_form_view" model="ir.ui.view">
+        <field name="name">library.membership.type.form</field>
+        <field name="model">membership.types</field>
+        <field name="arch" type="xml">
+            <form string="Membership Types">
+                <sheet>
+                    <field name="membership_name" invisible="1"/>
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="membership_name" string="Membership Type"/>
+                        <h1 >
+                            <field name="membership_name" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Renewal Details">
+                            <field name="renewal_amount" widget="monetary"/>
+                            <field name="expires_in" attrs="{'required':[('do_not_expire','=',False)]}"/>
+                            <field name="membership_product"/>
+                        </group>
+                        <group string="Expiry action" >
+                            <field name="do_not_expire"/>
+                            <field name="expiry_email" attrs="{'invisible':[('do_not_expire','=',True)]}"/>
+                            <field name="email_template" readonly="1"
+                                   attrs="{'invisible':[('expiry_email','=',False)],
+                                   'required':[('expiry_email','=',False)]}"/>
+                        </group>
+
+                    </group>
+                    <group >
+                        <group string="Book details">
+                            <field name="restrict_books"/>
+                            <field name="no_of_books" attrs="{'invisible':[('restrict_books','=',False)]}"/>
+                        </group>
+                    </group>
+                    <group string="Terms and Conditions">
+                        <field name="terms_conditions" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="terms"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Notes">
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="membership_types_tree_view" model="ir.ui.view">
+        <field name="name">library.membership.type.tree</field>
+        <field name="model">membership.types</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="membership_name"/>
+                <field name="no_of_books"/>
+                <field name="do_not_expire"/>
+                <field name="expiry_email"/>
+                <field name="expires_in"/>
+                <field name="renewal_amount"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_membership_types" model="ir.actions.act_window">
+        <field name="name">Membership Types</field>
+        <field name="res_model">membership.types</field>
+        <field name="view_mode">tree,form</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to define a new membership types.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="library_membership_types" name="Membership Types"
+              parent="library_configuration" sequence="2"
+              action="action_membership_types"/>
+</odoo>

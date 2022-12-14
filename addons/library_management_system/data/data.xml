@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--    Demo data for book category    -->
+        <record id="product_category_1" model="product.category">
+            <field name="parent_id" ref="product.product_category_all"/>
+            <field name="name">Books</field>
+<!--            <field name="book_categ" eval="True"/>-->
+        </record>
+        <!--    Demo data for membership sequence    -->
+        <record id="library_member_sequence" model="ir.sequence">
+            <field name="name">Membership Code</field>
+            <field name="code">res.partner.member</field>
+            <field eval="4" name="padding"/>
+<!--            <field eval="False" name="library_members"/>-->
+            <field name="company_id" eval="False"/>
+        </record>
+        <!--    Demo data fro register sequence number    -->
+        <record id="library_register_sequence" model="ir.sequence">
+            <field name="name">Register Sequence</field>
+            <field name="code">book.register</field>
+            <field name="prefix">REG/%(year)s/%(month)s/%(day)s/</field>
+            <field eval="4" name="padding"/>
+<!--            <field eval="False" name="library_register"/>-->
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Cron job book expiry status update -->
+        <record forcecreate="True" id="library_mark_expired_items" model="ir.cron">
+            <field name="name">Library - mark expired register</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="state">code</field>
+            <field name="binding_model_id" ref="model_book_register"/>
+            <field name="model_id" ref="model_book_register"/>
+            <field name="code">model._cron_mark_expired_register()</field>
+            <field name="priority">10</field>
+<!--            <field name="args">()</field>-->
+        </record>
+
+        <!-- Cron job membership expiry status update -->
+        <record forcecreate="True" id="library_mark_expired_members" model="ir.cron">
+            <field name="name">Library - membership expiry</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_res_partner"/>
+            <field name="code">model._cron_mark_expired_members()</field>
+            <field name="priority">10</field>
+<!--            <field name="args">()</field>-->
+        </record>
+
+        <!--   Email template for membership expiry     -->
+        <record id="email_template_membership_expiry" model="mail.template">
+            <field name="name">Reminder Membership Renewal</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="email_from">${(object.user_id.email |safe)}</field>
+            <field name="email_to" >${object.email |safe}</field>
+            <field name="subject">Membership Expiry Reminder</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="lang">${object.lang}</field>
+            <field name="body_html" type="html">
+                <div>
+                    <strong>Dear ${object.name},</strong>
+                    <br/>
+                    <br/>
+                    You library <b>${object.membership_type.membership_name}</b> has been expired
+                    on <b>${object.membership_expiry_date}</b>, please renew the membership.
+                    <br/>
+                    <br/>
+                    Thank you,
+                    <br/>
+                </div>
+            </field>
+        </record>
+
+        <!--   Email template for book issue expiry     -->
+        <record id="email_template_book_expiry" model="mail.template">
+            <field name="name">Reminder Book Expiry</field>
+            <field name="model_id" ref="library_management_system.model_book_register"/>
+            <field name="email_from">${(object.responsive_person.email |safe)}</field>
+            <field name="email_to" >${object.register_member.email |safe}</field>
+            <field name="subject">Book Expiry Reminder</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="lang">${object.register_member.lang}</field>
+            <field name="body_html" type="html">
+                <div>
+                    <strong>Dear ${object.register_member.name}</strong>
+                    <br/><br/>
+                    The book <b>"${object.register_book_name.name}"</b> which is issued on <b>${object.issued_date}</b>
+                    will be expired on <b>${object.calc_return_date}</b>, please return or renew the book to avoid due.
+                    <br/>
+                    <br/>
+                    Thank you,
+                    <br/>
+                </div>
+            </field>
+        </record>
+        <!--   Paper format for  Id card    -->
+        <record id="membership_card_paper" model="report.paperformat">
+            <field name="name">Membership Card</field>
+            <field name="default" eval="True" />
+            <field name="format">custom</field>
+            <field name="page_height">30</field>
+            <field name="page_width">50</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">35</field>
+            <field name="dpi">90</field>
+        </record>
+        <!--   Paper format for  Book Barcode    -->
+        <record id="book_barcode_paper" model="report.paperformat">
+            <field name="name">Book Barcode</field>
+            <field name="default" eval="True" />
+            <field name="format">custom</field>
+            <field name="page_height">25</field>
+            <field name="page_width">50</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">35</field>
+            <field name="dpi">90</field>
+        </record>
+    </data>
+</odoo>

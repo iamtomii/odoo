@@ -1,0 +1,215 @@
+<odoo>
+    <record id="library_members_form" model="ir.ui.view">
+        <field name="name">members.form.view</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="is_a_member" style="width:150px;"/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button class="oe_stat_button" type="object" icon="fa-money" name="action_view_book"
+                        attrs="{'invisible':[('is_a_member','=',False)]}">
+                    <div class="o_form_field o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="due_amount_paid" widget="monetary" nolabel="1" readonly="1"/>
+                        </span>
+                        <span class="o_stat_text">
+                            Due
+                        </span>
+                    </div>
+                </button>
+                <button class="oe_stat_button" type="object" icon="fa-book " name="action_view_book"
+                        attrs="{'invisible':[('is_a_member','=',False)]}">
+                    <div class="o_form_field o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="book_count" widget="statinfo" nolabel="1" readonly="1"/>
+                        </span>
+                        <span class="o_stat_text">
+                            On Hand
+                        </span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//page[last()]" position="after">
+                <page string="Library Membership" attrs="{'invisible':[('is_a_member','=',False)]}">
+                    <group>
+                        <group string="Membership details">
+                            <field name="membership_type" attrs="{'required':[('is_a_member','=',True)],
+                            'readonly':[('membership_expired','=',False)]}"/>
+                            <field name="sex" style="width:150px;" attrs="{'invisible':[('is_a_member','=',False)],
+                            'required':[('is_a_member','=',True)]}"/>
+                            <field name="member_sequence" readonly="1" attrs="{'invisible':[('is_a_member','=',False)]}"
+                                   style="width:150px;" force_save="1"/>
+                            <field name="membership_expired" invisible="1"/>
+                            <field name="membership_expiry_date" readonly="1"/>
+                            <field name="membership_expired" invisible="1"/>
+                        </group>
+                        <group string="History">
+                            <field name="membership_history" nolabel="1" mode="tree">
+                                <tree editable="false">
+                                    <field name="renewal_date"/>
+                                    <field name="renewal_plan"/>
+                                    <field name="new_expiry_date"/>
+                                    <field name="renewal_invoice"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="renewal_date"/>
+                                            <field name="renewal_plan"/>
+                                            <field name="new_expiry_date"/>
+                                        </group>
+                                        <group>
+                                            <field name="renewal_invoice"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </group>
+                    </group>
+                </page>
+                <page string="Book History" attrs="{'invisible':[('is_a_member','=',False)]}">
+                    <group>
+                        <field name="book_history" nolabel="1" mode="tree">
+                            <tree editable="false" default_order="register_sequence desc">
+                                <field name="register_sequence"/>
+                                <field name="book_name"/>
+                                <field name="edition"/>
+                                <field name="created_user"/>
+                                <field name="book_isbn"/>
+                                <field name="no_of_copies"/>
+                                <field name="issued_date"/>
+                                <field name="expiry_date"/>
+                            </tree>
+                            <form>
+                                <group>
+                                    <group>
+                                        <field name="register_sequence"/>
+                                        <field name="book_name"/>
+                                        <field name="edition"/>
+                                        <field name="book_isbn"/>
+                                    </group>
+                                    <group>
+                                        <field name="no_of_copies"/>
+                                        <field name="issued_date"/>
+                                        <field name="expiry_date"/>
+                                    </group>
+                                </group>
+                                <footer>
+                                    <button name="action_view_register" string="View Details" type="object"
+                                            class="btn-primary"/>
+                                </footer>
+                            </form>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <field name="block_status" invisible="1"/>
+                    <button string="Renew Membership" type="object" name="action_renew_membership_wizard"
+                            class="oe_highlight"
+                            attrs="{'invisible':['|',('membership_expired','=',False), ('is_a_member','=',False)]}"/>
+                    <button string="Block" type="object" name="action_block_member"
+                            class="oe_highlight"
+                            attrs="{'invisible':['|',('block_status','=',True), ('is_a_member','=',False)]}"/>
+                    <button string="Unblock" type="object" name="action_unblock_member"
+                            class="oe_highlight"
+                            attrs="{'invisible':['|',('block_status','=',False), ('is_a_member','=',False)]}"/>
+                </header>
+                <div class="alert alert-warning" role="alert"
+                     style="height: 40px;left: 10px;right: 10px; margin-bottom:0px;text-align: left;"
+                     attrs="{'invisible':['|',('membership_expired','=',True), ('is_a_member','=',False)]}">
+                    Library membership has been expired, please renewing member ship to continue.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="library_members_kanban" model="ir.ui.view">
+        <field name="name">members.kanbankanban.view</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.res_partner_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="is_a_member"/>
+                <field name="membership_expired"/>
+                <field name="member_sequence"/>
+                <field name="membership_expiry_date"/>
+                <field name="block_status"/>
+            </xpath>
+            <xpath expr="//div[@class='oe_kanban_details d-flex flex-column']" position="after">
+
+                <strong style="display: block;font-weight: bold;color: grey;">
+                    <field name="member_sequence"/>
+                </strong>
+                <div attrs="{'invisible':[('is_a_member','=',False)]}">
+                    <div t-if="record.block_status.raw_value === true" style="position: absolute;right: 8px;top: 7px;
+                        background-color: #e61515;border-radius: 50%;width: 15px;height: 15px;"/>
+                    <div t-if="record.block_status.raw_value === false" style="position: absolute;right: 8px;top: 7px;
+                        background-color: #95ee66;border-radius: 50%;width: 15px;height: 15px;"/>
+                </div>
+            </xpath>
+            <xpath expr="//div[@class='oe_kanban_details d-flex flex-column']/ul[1]" position="inside">
+                <li t-if=" record.is_a_member.raw_value== true">
+                    <span style="color:red;">Expires :
+                    </span>
+                    <field name="membership_expiry_date"/>
+                </li>
+                <li t-if="record.is_a_member.raw_value == true">
+                    <t t-if="record.membership_expired.raw_value == true">
+                        <span style="color: #732525;background-color: #f9b9b9;border: 1px solid #ea7878;
+                        border-radius: 3px;padding: 0% 5% 0% 4%;">
+                            Membership expired
+                        </span>
+                    </t>
+                </li>
+            </xpath>
+
+        </field>
+    </record>
+    <!--  Add Group by and search by sequence in contacts search view  -->
+    <record id="view_res_partner_filter_extended" model="ir.ui.view">
+        <field name="name">res.partner.filter</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="member_sequence"/>
+                <filter name="membership_type" string="Membership Type" context="{'group_by': 'membership_type'}"/>
+                <filter name="membership_expired" string="Membership Expired"
+                        context="{'group_by': 'membership_expired'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_library_members" model="ir.actions.act_window">
+        <field name="name">Members</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,tree,form,pivot</field>
+        <field name="domain">[('is_a_member', '=', True)]</field>
+<!--        <field name="view_type">form</field>-->
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to define a new Books.
+            </p>
+        </field>
+    </record>
+    <record id="action_late_members" model="ir.actions.server">
+        <field name="name">Approvals</field>
+        <field name="model_id" ref="model_res_partner"/>
+        <field name="binding_model_id" ref="model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model._get_late_members()
+        </field>
+    </record>
+
+    <menuitem id="library_management_members" parent="library_main_menu"
+              name="Members" sequence="2"/>
+    <menuitem action="action_library_members" id="library_members_list" parent="library_management_members"
+              name="Members" sequence="1"/>
+    <menuitem action="action_late_members" id="library_late_members" parent="library_management_members"
+              name="Late Members" sequence="2"/>
+</odoo>
