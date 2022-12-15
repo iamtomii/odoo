@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # from odoo import http
+from datetime import datetime
+
 from odoo import exceptions, http
 from odoo.http import request, Response
 import json
@@ -8,6 +10,23 @@ import logging
 import base64
 
 class LibraryController(http.Controller):
+    def fill_record(self,member,book):
+        date = datetime.strptime("12/21/2022", '%m/%d/%Y')
+        partner_id = http.request.env['res.partner'].sudo().search([('x_Member_RFID', '=', member)])
+        book_id = http.request.env['product.product'].sudo().search([('x_RFID', '=', book)])
+        vals = {
+            "register_book_name": book_id.id,
+            "register_author_name": book_id.author_name,
+            "register_book_title": book_id.book_title,
+            "register_isbn_number": book_id.isbn_number,
+            "register_isbn_13_number": book_id.isbn_13_number,
+            "book_image": book_id.image_1920,
+            "register_edition": book_id.edition,
+            "calc_return_date": date,
+            "register_member": partner_id.id,
+            "register_member_id": partner_id["member_sequence"]
+        }
+        return vals
     @http.route('/hello', auth='public')
     def index(self, **kw):
         return "Hello, world"
@@ -35,7 +54,7 @@ class LibraryController(http.Controller):
 
                 #print(author['author_name'])
                 vals = {
-                "Type":"Product_card",
+                #"Type":"Product_card",
                 "RFID": product_templ_id['x_RFID'],
                 "Book_title": product_templ_id['book_title'],
                 "ISBN_13": product_templ_id['isbn_13_number'],
@@ -44,7 +63,11 @@ class LibraryController(http.Controller):
                 }
                 if vals['Book_title'] is not False:
                     value.append(vals)
-            return value
+            values={ "Type":"Product_Card",
+                "content":value
+
+            }
+            return values
 
     @http.route('/library_controller/get_member', type='json', auth='public')
     def get_member(self):
@@ -60,16 +83,37 @@ class LibraryController(http.Controller):
             country=member_templ_id["country_id"]
             vals={
                 "Type":"Member_Card",
+                "content": {
                 "RFID": member_templ_id['x_Member_RFID'],
                 "Name":member_templ_id["name"],
                 "Member_ID":member_templ_id["member_sequence"],
                 "Gender":member_templ_id["sex"],
                 "Current_membership":membership_type["membership_name"],
-                "Contact":member_templ_id["street"]
-
+                "Contact":member_templ_id["street"],
+                }
             }
-            value.append(vals)
-        return value
+        return vals
+
+    @http.route('/library_controller/issue', auth='public', type='json', methods=['POST'], cors='*',csrf=False)
+    def issueBook(self,**kwargs):
+        request_data = json.loads(request.httprequest.data)
+        if request_data is not None:
+            member = request_data['member']
+            books=request_data['books']
+            #product_product_id = http.request.env['product.product'].sudo().search([('name', '=', "Animal Stories")])
+
+            for i in books:
+                vals=self.fill_record(member,i)
+                http.request.env['book.register'].sudo().create(vals)
+        args = {'success': True, 'message': 'Success'}
+        return args
+
+    @http.route('/library_controller/test', auth='public', type='json', methods=['POST'], cors='*', csrf=False)
+    def issueBook(self, **kwargs):
+        request_data = json.loads(request.httprequest.data)
+        print(request_data)
+        args = {'success': True, 'message': 'Success'}
+        return args
         # if vals['Product_name'] is not False:
         #   value.append(vals)
         #  else:
