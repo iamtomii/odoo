@@ -74,7 +74,7 @@ class LibraryController(http.Controller):
         request_data=json.loads(request.httprequest.data)
         if request_data is not None:
             rfid = request_data['rfid']
-            #print(rfid)
+            print(rfid)
             value = []
             v=rfid[0]
             member_templ_id = http.request.env['res.partner'].sudo().search([['x_Member_RFID', '=', v]])
@@ -97,6 +97,7 @@ class LibraryController(http.Controller):
     @http.route('/library_controller/issue', auth='public', type='json', methods=['POST'], cors='*',csrf=False)
     def issueBook(self,**kwargs):
         request_data = json.loads(request.httprequest.data)
+        print(request_data)
         if request_data is not None:
             member = request_data['member']
             books=request_data['books']
@@ -109,7 +110,7 @@ class LibraryController(http.Controller):
         return args
 
     @http.route('/library_controller/test', auth='public', type='json', methods=['POST'], cors='*', csrf=False)
-    def issueBook(self, **kwargs):
+    def issue_Book(self, **kwargs):
         request_data = json.loads(request.httprequest.data)
         print(request_data)
         args = {'success': True, 'message': 'Success'}
