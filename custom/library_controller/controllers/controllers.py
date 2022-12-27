@@ -214,28 +214,30 @@ class LibraryController(http.Controller):
             source=request_data["Source Location"][0].split("/")
             #print(source)
             destination=request_data['Destination Location'][0].split("/")
+            sourcedocument=request_data['Source Document'][0]
             #print(destination)
             rfid=request_data['rfid']
             #print(rfid)
+
             type_id=http.request.env['stock.picking.type'].sudo().search([["name","=",type[1]]])
            # print(type_id[0]["return_picking_type_id"])
             if (type_id[0]['name']=="Receipts"):
-                self.receipts_transfer(type_id, contact, destination,rfid)
+                self.receipts_transfer(type_id, contact, destination,rfid,sourcedocument)
             elif (type_id[0]['name']=="Internal Transfers"):
                 #self.receipts_transfer(type_id,contact,destination)
-                self.internal_transfer(type_id,contact,source,destination,rfid)
+                self.internal_transfer(type_id,contact,source,destination,rfid,sourcedocument)
 
             elif (type_id[0]["name"]=="Delivery Orders"):
-                self.delivery_orders_transfer(type_id, contact,source,rfid)
+                self.delivery_orders_transfer(type_id, contact,source,rfid,sourcedocument)
             elif (type_id[0]["name"]=="Returns"):
-                self.return_transfer(type_id, contact,destination,rfid)
+                self.return_transfer(type_id, contact,destination,rfid,sourcedocument)
 
 
 
         return Response(json.dumps(json.dumps({
             "code": 201,
             "message": 'Successfully Update Product Quantity'})))
-    def receipts_transfer(self,type_id,contact,destination,rfid):
+    def receipts_transfer(self,type_id,contact,destination,rfid,sourcedocument):
         #contact
         if len(contact)==1:
             contact_id = http.request.env['res.partner'].sudo().search(
@@ -262,19 +264,24 @@ class LibraryController(http.Controller):
             "location_dest_id": destination_id_local['id'],
             "location_id": 4,
             "user_id": 2,
-            "company_id": 1
+            "company_id": 1,
+            "origin": sourcedocument
         }
         result = http.request.env['stock.picking'].sudo().create(vals)
         print(result['id'])
         location_id = 4
         location_dest_id = destination_id['id']
         self.stock_move_transfer(rfid, location_dest_id, contact_id, result, location_id)
-    def internal_transfer(self,type_id,contact,source,destination,rfid):
+    def internal_transfer(self,type_id,contact,source,destination,rfid,sourcedocument):
         #contact
-        parent_id = http.request.env['res.partner'].sudo().search([["name", "=", contact[0]]])
-        #print(parent_id['id'])
-        contact_id = http.request.env['res.partner'].sudo().search(
-            [["name", "=", contact[1]], ["parent_id", "=", parent_id['id']]])
+        if len(contact)==1:
+            contact_id = http.request.env['res.partner'].sudo().search(
+                [["name", "=", contact[0]]])
+        else:
+            parent_id = http.request.env['res.partner'].sudo().search([["name", "=", contact[0]]])
+            print(parent_id['id'])
+            contact_id = http.request.env['res.partner'].sudo().search(
+                [["name", "=", contact[1]], ["parent_id", "=", parent_id['id']]])
         # print(destination[0])
         #source
         if len(source)==1:
@@ -300,18 +307,24 @@ class LibraryController(http.Controller):
             "location_dest_id": destination_id_local['id'],
             "location_id": source_id_local['id'],
             "user_id": 2,
-            "company_id": 1
+            "company_id": 1,
+            "origin": sourcedocument
         }
         result = http.request.env['stock.picking'].sudo().create(vals)
         print(result['id'])
         location_id = source_id_local['id']
         location_dest_id = destination_id_local['id']
         self.stock_move_transfer(rfid, location_dest_id, contact_id, result, location_id)
-    def delivery_orders_transfer(self,type_id, contact,source,rfid):
-        parent_id = http.request.env['res.partner'].sudo().search([["name", "=", contact[0]]])
-        print("check"+parent_id['id'])
-        contact_id = http.request.env['res.partner'].sudo().search(
-            [["name", "=", contact[1]], ["parent_id", "=", parent_id['id']]])
+    def delivery_orders_transfer(self,type_id, contact,source,rfid,sourcedocument):
+        # contact
+        if len(contact) == 1:
+            contact_id = http.request.env['res.partner'].sudo().search(
+                [["name", "=", contact[0]]])
+        else:
+            parent_id = http.request.env['res.partner'].sudo().search([["name", "=", contact[0]]])
+            print(parent_id['id'])
+            contact_id = http.request.env['res.partner'].sudo().search(
+                [["name", "=", contact[1]], ["parent_id", "=", parent_id['id']]])
         # print(destination[0])
         # source
         if len(source)==1:
@@ -329,7 +342,9 @@ class LibraryController(http.Controller):
             "location_dest_id": 5,
             "location_id": source_id_local['id'],
             "user_id": 2,
-            "company_id": 1
+            "company_id": 1,
+            "origin": sourcedocument
+
         }
         result = http.request.env['stock.picking'].sudo().create(vals)
         print(result['id'])
@@ -337,12 +352,19 @@ class LibraryController(http.Controller):
         location_dest_id = 5
         self.stock_move_transfer(rfid, location_dest_id, contact_id, result, location_id)
 
-    def return_transfer(self,type_id,contact,destination,rfid):
-        #contact
-        parent_id = http.request.env['res.partner'].sudo().search([["name", "=", contact[0]]])
-        print(parent_id['id'])
-        contact_id = http.request.env['res.partner'].sudo().search(
-            [["name", "=", contact[1]], ["parent_id", "=", parent_id['id']]])
+
+
+
+    def return_transfer(self,type_id,contact,destination,rfid,sourcedocument):
+        # contact
+        if len(contact) == 1:
+            contact_id = http.request.env['res.partner'].sudo().search(
+                [["name", "=", contact[0]]])
+        else:
+            parent_id = http.request.env['res.partner'].sudo().search([["name", "=", contact[0]]])
+            print(parent_id['id'])
+            contact_id = http.request.env['res.partner'].sudo().search(
+                [["name", "=", contact[1]], ["parent_id", "=", parent_id['id']]])
         # print(destination[0])
         #destination
         if len(destination) == 1:
@@ -361,6 +383,7 @@ class LibraryController(http.Controller):
             "location_id": 4,
             "user_id": 2,
             "company_id": 1,
+            "origin":sourcedocument
             #"move_ids_without_package":35
         }
         result=http.request.env['stock.picking'].sudo().create(vals)
@@ -383,6 +406,8 @@ class LibraryController(http.Controller):
                 "location_dest_id":location_dest_id,
                 "partner_id": contact_id['id'],
                 "picking_id":result['id'],
-                "name":product_template_id['name']
+                "name":product_template_id['name'],
+                "state":"done",
+                "quantity_done":1
             }
             http.request.env['stock.move'].sudo().create(move_vals)
