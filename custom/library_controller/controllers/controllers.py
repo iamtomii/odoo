@@ -201,7 +201,7 @@ class LibraryController(http.Controller):
                 break
         return res
 
-    @http.route('/inventory_controller/inventory/create_transfer/receipts', auth='public', methods=['POST'], type='json', cors='*',
+    @http.route('/inventory_controller/inventory/create_transfer/transfer', auth='public', methods=['POST'], type='json', cors='*',
                     csrf=False)
     def create_transfer(self, **kwargs):
         request_data = json.loads(request.httprequest.data)
@@ -411,3 +411,47 @@ class LibraryController(http.Controller):
                 "quantity_done":1
             }
             http.request.env['stock.move'].sudo().create(move_vals)
+    @http.route('/inventory/transfer/gettype',methods=['POST'],type="json",auth='public',csrf=False)
+    def get_type(self):
+        request_data = json.loads(request.httprequest.data)
+        print(request_data)
+        user_id = http.request.env['res.users'].sudo().search([["job_title","=","Chief Executive Officer"]])
+        adress_uid=user_id.address_id
+        adress_name=adress_uid.name.replace("My Company (","").replace(")","")
+        print(adress_name)
+        type_transfer=http.request.env['stock.picking.type'].sudo().search([["company_id","=",adress_uid.id]])
+        print(type_transfer)
+        list_type=["type"]
+        for type_id in type_transfer:
+            type_name=adress_name +": "+type_id.name+""
+            list_type.append(type_name)
+
+        return list_type
+    @http.route('/inventory/transfer/getcontact',methods=['POST'],type="json",auth='public',csrf=False)
+    def get_contact(self):
+        list_partner=["contact"]
+        request_data = json.loads(request.httprequest.data)
+        partner_id=http.request.env['res.partner'].sudo().search([["company_id","!=","1"]])
+        for person_id in partner_id:
+            parent_id=person_id["parent_id"]
+            if parent_id.name is not False:
+                list_partner.append(parent_id.name + ", "+person_id.name)
+            else:
+                list_partner.append(person_id.name)
+        return list_partner
+    @http.route('/inventory/transfer/getwarehouse',methods=['POST'],type="json",auth='public',csrf=False)
+    def get_warehouse(self):
+        list_location=["source"]
+        request_data = json.loads(request.httprequest.data)
+        location_id=http.request.env['stock.location'].sudo().search([["active","=","true"],["company_id","!=","2"]])
+        for location in location_id:
+            list_location.append(location['complete_name'])
+        return list_location
+    @http.route('/inventory/transfer/getwarehousedest',methods=['POST'],type="json",auth='public',csrf=False)
+    def get_warehousedest(self):
+        list_location=["dest"]
+        request_data = json.loads(request.httprequest.data)
+        location_id=http.request.env['stock.location'].sudo().search([["active","=","true"],["company_id","!=","2"]])
+        for location in location_id:
+            list_location.append(location['complete_name'])
+        return list_location
