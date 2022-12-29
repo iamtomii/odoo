@@ -208,22 +208,25 @@ class LibraryController(http.Controller):
         print(request_data)
         if request_data is not None:
             type=request_data['Operation Type'][0].split(": ")
-            #print(type)
+            print(type)
             contact=request_data['Contact'][0].split(", ")
-           # print(contact)
+            print(contact)
             source=request_data["Source Location"][0].split("/")
-            #print(source)
+            print(source)
             destination=request_data['Destination Location'][0].split("/")
             sourcedocument=request_data['Source Document'][0]
-            #print(destination)
+            print(destination)
             rfid=request_data['rfid']
-            #print(rfid)
+            print(rfid)
 
             type_id=http.request.env['stock.picking.type'].sudo().search([["name","=",type[1]]])
            # print(type_id[0]["return_picking_type_id"])
             if (type_id[0]['name']=="Receipts"):
                 self.receipts_transfer(type_id, contact, destination,rfid,sourcedocument)
             elif (type_id[0]['name']=="Internal Transfers"):
+                #self.receipts_transfer(type_id,contact,destination)
+                self.internal_transfer(type_id,contact,source,destination,rfid,sourcedocument)
+            elif (type_id[0]['name']=="Manufacturing"):
                 #self.receipts_transfer(type_id,contact,destination)
                 self.internal_transfer(type_id,contact,source,destination,rfid,sourcedocument)
 
@@ -415,16 +418,20 @@ class LibraryController(http.Controller):
     def get_type(self):
         request_data = json.loads(request.httprequest.data)
         print(request_data)
-        user_id = http.request.env['res.users'].sudo().search([["job_title","=","Chief Executive Officer"]])
-        adress_uid=user_id.address_id
-        adress_name=adress_uid.name.replace("My Company (","").replace(")","")
-        print(adress_name)
-        type_transfer=http.request.env['stock.picking.type'].sudo().search([["company_id","=",adress_uid.id]])
-        print(type_transfer)
-        list_type=["type"]
-        for type_id in type_transfer:
-            type_name=adress_name +": "+type_id.name+""
-            list_type.append(type_name)
+        if request_data is not None:
+            type_code=request_data["type"].replace(" ","_")
+            print(type_code)
+            user_id = http.request.env['res.users'].sudo().search([["job_title", "=", "Chief Executive Officer"]])
+            adress_uid = user_id.address_id
+            adress_name = adress_uid.name.replace("My Company (", "").replace(")", "")
+            print(adress_name)
+            type_transfer = http.request.env['stock.picking.type'].sudo().search([["company_id", "=", adress_uid.id],["code","=",type_code]])
+            print(type_transfer)
+            list_type = ["type"]
+            for type_id in type_transfer:
+                type_name = adress_name + ": " + type_id.name + ""
+                list_type.append(type_name)
+
 
         return list_type
     @http.route('/inventory/transfer/getcontact',methods=['POST'],type="json",auth='public',csrf=False)
@@ -432,18 +439,20 @@ class LibraryController(http.Controller):
         list_partner=["contact"]
         request_data = json.loads(request.httprequest.data)
         partner_id=http.request.env['res.partner'].sudo().search([["company_id","!=","1"]])
-        for person_id in partner_id:
-            parent_id=person_id["parent_id"]
-            if parent_id.name is not False:
-                list_partner.append(parent_id.name + ", "+person_id.name)
-            else:
-                list_partner.append(person_id.name)
+        # for person_id in partner_id:
+        #     parent_id=person_id["parent_id"]
+        #     if parent_id.name is not False:
+        #         list_partner.append(parent_id.name + ", "+person_id.name)
+        #     else:
+        #         list_partner.append(person_id.name)
+        for person in partner_id:
+            list_partner.append(person['display_name'])
         return list_partner
     @http.route('/inventory/transfer/getwarehouse',methods=['POST'],type="json",auth='public',csrf=False)
     def get_warehouse(self):
         list_location=["source"]
         request_data = json.loads(request.httprequest.data)
-        location_id=http.request.env['stock.location'].sudo().search([["active","=","true"],["company_id","!=","2"]])
+        location_id=http.request.env['stock.location'].sudo().search([["active","=","true"],["usage","!=","view"]])
         for location in location_id:
             list_location.append(location['complete_name'])
         return list_location
@@ -451,7 +460,24 @@ class LibraryController(http.Controller):
     def get_warehousedest(self):
         list_location=["dest"]
         request_data = json.loads(request.httprequest.data)
-        location_id=http.request.env['stock.location'].sudo().search([["active","=","true"],["company_id","!=","2"]])
+        location_id=http.request.env['stock.location'].sudo().search([["active","=","true"],["company_id","!=","2"],["usage","!=","view"]])
         for location in location_id:
             list_location.append(location['complete_name'])
         return list_location
+    @http.route('/inventory/transfer/gettypetransfer',methods=['POST'],type="json",auth='public',csrf=False)
+    def get_typetransfer(self):
+        request_data = json.loads(request.httprequest.data)
+        print(request_data)
+        user_id = http.request.env['res.users'].sudo().search([["job_title","=","Chief Executive Officer"]])
+        adress_uid=user_id.address_id
+        adress_name=adress_uid.name.replace("My Company (","").replace(")","")
+        print(adress_name)
+        type_transfer=http.request.env['stock.picking.type'].sudo().search([["company_id","=",adress_uid.id]])
+        print(type_transfer)
+        title_type=["typetransfer"]
+        list_type=[]
+        for type_id in type_transfer:
+            # type_name=adress_name +": "+type_id.name+""
+            list_type.append(type_id.code.replace("_"," "))
+        title_type.extend(list(set(list_type)))
+        return title_type

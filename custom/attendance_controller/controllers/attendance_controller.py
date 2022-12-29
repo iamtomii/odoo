@@ -15,16 +15,46 @@ class AttendanceController(http.Controller):
 
     @http.route('/attendance_controller/employee_all', auth='public', csrf=False)
     def index(self, **kw):
-        employees_rec = http.request.env['hr.employee'].sudo().search([])
+        employees_rec = http.request.env['hr.employee'].search([])
         output = "<h1>The list of employees: </h1><ul>"
         for employee in employees_rec:
             output += '<li>' + employee['name'] + '</li>' + '/<ul>'
         return output
+    @http.route('/attendance_controller/employee-RFID-Exist/<string:rfid>', auth='public', type='http', csrf=False)
+    def get_employee_by_rfid_exist(self, rfid, **kw):
+        employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", rfid]])
+        print(rfid)
+        print(employee_rfid.name)
+        if employee_rfid.name is not False:
+            vals={
+                "signalexist":"exist"
+            }
+        else:
+            vals={
+                "signalexist":"not exist"
+            }
 
+        return Response(json.dumps(vals, ensure_ascii=False))
+    @http.route('/attendance_controller/employee-RFID-check/<string:rfid>', auth='public', type='http', csrf=False)
+    def get_employee_by_rfid_check(self, rfid, **kw):
+        employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", rfid]])
+        last_checkin = http.request.env['hr.attendance'].sudo().search([["employee_id", "=", employee_rfid['id']]])
+        print(last_checkin)
+        print(employee_rfid.name)
+        if employee_rfid.name is not False:
+            vals={
+                "signalexist":"exist"
+            }
+        else:
+            vals={
+                "signalexist":"not exist"
+            }
+
+        return Response(json.dumps(vals, ensure_ascii=False))
     # api get employee information
     @http.route('/attendance_controller/employee-RFID/<string:rfid>', auth='public', type='http', csrf=False)
     def get_employee_by_rfid(self, rfid, **kw):
-        employee_rfid = http.request.env['hr.employee'].sudo().search([["x_RFID", "=", rfid]])
+        employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", rfid]])
         last_checkin = http.request.env['hr.attendance'].sudo().search([["employee_id", "=", employee_rfid['id']]])
         name = employee_rfid['name']
         department = http.request.env['hr.department'].sudo().search([["id", "=", int(employee_rfid['department_id'])]])
@@ -36,7 +66,7 @@ class AttendanceController(http.Controller):
                 "work email": employee_rfid['work_email'],
                 "job": employee_rfid['job_title'],
                 "department": department['name'],
-                #"avatar": str(employee_rfid['image_1920']),
+                "avatar": str(employee_rfid['image_1920']),
             }
         elif len(last_checkin) < 2:
             data = {
@@ -48,9 +78,9 @@ class AttendanceController(http.Controller):
                 "department": department['name'],
                 "avatar": str(employee_rfid['image_1920']),
                 "last_checkin": str(last_checkin[0]['check_in']),
-                #"last_checkin_image": str(last_checkin[0].checkin_image),
+                "last_checkin_image": str(last_checkin[0].checkin_image),
                 "last_checkout": str(last_checkin[0].check_out),
-                #"last_checkout_image": str(last_checkin[0].checkout_image),
+                "last_checkout_image": str(last_checkin[0].checkout_image),
             }
         else:
             if not last_checkin[0].check_out:
@@ -63,9 +93,9 @@ class AttendanceController(http.Controller):
                     "department": department['name'],
                     "avatar": str(employee_rfid['image_1920']),
                     "last_checkin": str(last_checkin[0]['check_in']),
-                    #"last_checkin_image": str(last_checkin[0].checkin_image),
+                    "last_checkin_image": str(last_checkin[0].checkin_image),
                     "last_checkout": str(last_checkin[1].check_out),
-                    #"last_checkout_image": str(last_checkin[1].checkout_image),
+                    "last_checkout_image": str(last_checkin[1].checkout_image),
                 }
             elif last_checkin[0].check_out is not False:
                 data = {
@@ -77,9 +107,9 @@ class AttendanceController(http.Controller):
                     "department": department['name'],
                     "avatar": str(employee_rfid['image_1920']),
                     "last_checkin": str(last_checkin[0]['check_in']),
-                    #"last_checkin_image": str(last_checkin[0].checkin_image),
+                    "last_checkin_image": str(last_checkin[0].checkin_image),
                     "last_checkout": str(last_checkin[1].check_out),
-                    #"last_checkout_image": str(last_checkin[1].checkout_image),
+                    "last_checkout_image": str(last_checkin[1].checkout_image),
                 }
             else:
                 data = {
@@ -91,9 +121,9 @@ class AttendanceController(http.Controller):
                     "department": department['name'],
                     "avatar": str(employee_rfid['image_1920']),
                     "last_checkin": str(last_checkin[1]['check_in']),
-                    #"last_checkin_image": str(last_checkin[1].checkin_image),
+                    "last_checkin_image": str(last_checkin[1].checkin_image),
                     "last_checkout": str(last_checkin[1].check_out),
-                    #"last_checkout_image": str(last_checkin[1].checkout_image),
+                    "last_checkout_image": str(last_checkin[1].checkout_image),
                 }
         return Response(json.dumps(data, ensure_ascii=False))
 
@@ -103,8 +133,8 @@ class AttendanceController(http.Controller):
     def get_employee_checkin(self, **rec):
         employee_request = json.loads(request.httprequest.data)
         if employee_request is not None:
-            employee_rfid = http.request.env['hr.employee'].sudo().search([["x_RFID", "=", employee_request['rfid']]])
-            #image_request = employee_request['image']
+            employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", employee_request['rfid']]])
+            image_request = employee_request['image']
             checkin_request = employee_request['checkin_time']
             if employee_request['rfid'] == " ":
                 raise exceptions.ValidationError("RFID is empty")
@@ -112,13 +142,13 @@ class AttendanceController(http.Controller):
                 vals = {
                     'employee_id': employee_rfid['id'],
                     'check_in': str(checkin_request),
-                   # 'checkin_image': str(image_request),
+                    'checkin_image': str(image_request),
                 }
                 employee_attendance = http.request.env['hr.attendance'].sudo().create(vals)
                 return {
                     "code": 201,
                     "message": 'Successfully Check-in',
-                    #'check in image': str(image_request),
+                    'check in image': str(image_request),
                 }
             else:
                 raise exceptions.ValidationError("Can not find employee")
@@ -132,7 +162,7 @@ class AttendanceController(http.Controller):
     def get_employee_checkout(self, **rec):
         employee_request = json.loads(request.httprequest.data)
         if employee_request is not None:
-            employee_rfid = http.request.env['hr.employee'].sudo().search([["x_RFID", "=", employee_request['rfid']]])
+            employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", employee_request['rfid']]])
             if employee_rfid:
                 employee_id = employee_rfid['id']
                 employee_attendance = http.request.env['hr.attendance'].sudo().search(
@@ -144,7 +174,7 @@ class AttendanceController(http.Controller):
                     if flag is not None:
                         vals = {
                             'check_out': str(employee_request['checkout_time']),
-                            #'checkout_image': str(employee_request['image'])
+                            'checkout_image': str(employee_request['image'])
                         }
                         if not flag['check_out']:
                             flag.sudo().write(vals)
@@ -152,7 +182,7 @@ class AttendanceController(http.Controller):
                                 "code": 201,
                                 "message": 'Successfully Check-out',
                                 'time checkout': str(employee_request['checkout_time']),
-                                #'checkout image': employee_request['image']
+                                'checkout image': employee_request['image']
                             }
                         else:
                             raise exceptions.ValidationError("Employee is already checked-out")
