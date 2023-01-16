@@ -222,7 +222,8 @@ class LibraryController(http.Controller):
             type_id=http.request.env['stock.picking.type'].sudo().search([["name","=",type[1]]])
            # print(type_id[0]["return_picking_type_id"])
             if (type_id[0]['name']=="Receipts"):
-                self.receipts_transfer(type_id, contact, destination,rfid,sourcedocument)
+                print("hi");
+                self.receipts_transfer(type_id, contact, source,rfid,sourcedocument)
             elif (type_id[0]['name']=="Internal Transfers"):
                 #self.receipts_transfer(type_id,contact,destination)
                 self.internal_transfer(type_id,contact,source,destination,rfid,sourcedocument)
@@ -233,7 +234,7 @@ class LibraryController(http.Controller):
             elif (type_id[0]["name"]=="Delivery Orders"):
                 self.delivery_orders_transfer(type_id, contact,source,rfid,sourcedocument)
             elif (type_id[0]["name"]=="Returns"):
-                self.return_transfer(type_id, contact,destination,rfid,sourcedocument)
+                self.return_transfer(type_id, contact,source,rfid,sourcedocument)
 
 
 

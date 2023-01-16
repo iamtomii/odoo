@@ -23,31 +23,32 @@ class AttendanceController(http.Controller):
     @http.route('/attendance_controller/employee-RFID-Exist/<string:rfid>', auth='public', type='http', csrf=False)
     def get_employee_by_rfid_exist(self, rfid, **kw):
         employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", rfid]])
-        print(rfid)
-        print(employee_rfid.name)
-        if employee_rfid.name is not False:
-            vals={
-                "signalexist":"exist"
-            }
-        else:
-            vals={
-                "signalexist":"not exist"
-            }
-
-        return Response(json.dumps(vals, ensure_ascii=False))
-    @http.route('/attendance_controller/employee-RFID-check/<string:rfid>', auth='public', type='http', csrf=False)
-    def get_employee_by_rfid_check(self, rfid, **kw):
-        employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", rfid]])
-        last_checkin = http.request.env['hr.attendance'].sudo().search([["employee_id", "=", employee_rfid['id']]])
+        print(employee_rfid['id'])
+        last_checkin = http.request.env['hr.attendance'].sudo().search([["employee_id", "=", employee_rfid.id]])
         print(last_checkin)
-        print(employee_rfid.name)
-        if employee_rfid.name is not False:
-            vals={
-                "signalexist":"exist"
+        if  len(last_checkin)!=0 and employee_rfid.name is not False:
+            if last_checkin[0].check_in is not False and last_checkin[0].check_out is False:
+                vals={
+                    "signalexist": "exist",
+                    "signalcheck":"checkout"
+
+                }
+            else:
+                vals={
+                    "signalexist": "exist",
+                    "signalcheck": "checkin"
+
+                }
+        elif len(last_checkin)==0 and employee_rfid.name is not False:
+            vals = {
+                "signalexist": "exist",
+                "signalcheck": "checkin"
+
             }
         else:
             vals={
-                "signalexist":"not exist"
+                "signalexist":"not exist",
+                "signalcheck":"can't check"
             }
 
         return Response(json.dumps(vals, ensure_ascii=False))
@@ -131,6 +132,7 @@ class AttendanceController(http.Controller):
     @http.route('/attendance_controller/employee-checkin', type='json', auth='public',
                 methods=['POST'], cors='*', csrf=False)
     def get_employee_checkin(self, **rec):
+        print("checkin")
         employee_request = json.loads(request.httprequest.data)
         if employee_request is not None:
             employee_rfid = http.request.env['hr.employee'].sudo().search([["x_EMPLOYEE_RFID", "=", employee_request['rfid']]])
@@ -190,3 +192,64 @@ class AttendanceController(http.Controller):
                 raise exceptions.ValidationError("Can not find employee")
         else:
             raise exceptions.ValidationError("Invalid Employee Input")
+    @http.route('/attendance_controller/create_new_hr_employee', type='json', auth='public', methods=['POST'], cors='*',
+                csrf=False)
+    def create_new_hr_employee(self, **rec):
+        employee_request = json.loads(request.httprequest.data)
+        if employee_request is not None:
+            id=employee_request["id"]
+            print(id)
+            rfid=employee_request["rfid"]
+            employee_info = http.request.env['hr.employee'].sudo().search([["pin", "=", id]])
+            print(employee_info)
+            if not employee_info:
+                raise exceptions.ValidationError("ID does not exist")
+            else:
+                if employee_info['x_EMPLOYEE_RFID'] is not False:
+                    raise exceptions.ValidationError("EMPLOYEE HAVE RFID")
+                else:
+                    vals = {
+                        "x_EMPLOYEE_RFID": rfid
+                    }
+                    employee_info.sudo().write(vals)
+                    return {
+                        "code": 201,
+                        "message": 'Successfully',
+                        "name": employee_info['name']
+                    }
+
+        else:
+            raise exceptions.ValidationError("Invalid Employee Input")
+
+    @http.route('/attendance_controller/show_information_employee_by_id/<string:id>',auth='public',type='http',csrf=False)
+    def show_information_employee_by_id(self,id,**aw):
+        employee_info = http.request.env['hr.employee'].sudo().search([["pin", "=", id]])
+        department = http.request.env['hr.department'].sudo().search([["id", "=", int(employee_info['department_id'])]])
+        if not employee_info:
+            vals = {
+                "code": "ID is not exist",
+                "name":"false",
+                "ID":"false",
+                "department":"false",
+                "avatar":"false"
+
+            }
+        else:
+                if employee_info['x_EMPLOYEE_RFID'] is not False:
+                    vals = {
+                        "code": "Employee had RFID ",
+                        "name": "false",
+                        "ID": "false",
+                        "department": "false",
+                        "avatar": "false"
+                        }
+                else:
+                    vals = {
+                        "code": "ok",
+                        "name":employee_info['name'],
+                        "ID":employee_info['id'],
+                        "department":department['name'],
+                        "avatar": str(employee_info['image_1920'])
+                    }
+
+        return Response(json.dumps(vals, ensure_ascii=False))
