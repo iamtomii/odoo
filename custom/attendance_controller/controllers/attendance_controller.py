@@ -78,13 +78,16 @@ class AttendanceController(http.Controller):
                 "job": employee_rfid['job_title'],
                 "department": department['name'],
                 "avatar": str(employee_rfid['image_1920']),
+                "last_checkin": str(last_checkin[1]['check_in']),
+                "last_checkin_image": str(last_checkin[1].checkin_image),
+                "last_checkout": str(last_checkin[1].check_out),
+                "last_checkout_image": str(last_checkin[1].checkout_image),
                 "checkin": str(last_checkin[0]['check_in']),
                 "checkin_image": str(last_checkin[0].checkin_image),
-                "checkout": str(last_checkin[0].check_out),
-                "checkout_image": str(last_checkin[0].check_out)
             }
         else:
-            if not last_checkin[0].check_out:
+
+            if last_checkin[0].check_out:
                 data = {
                     "id": employee_rfid['id'],
                     "name": name,
@@ -95,6 +98,8 @@ class AttendanceController(http.Controller):
                     "avatar": str(employee_rfid['image_1920']),
                     "last_checkout": str(last_checkin[1].check_out),
                     "last_checkout_image": str(last_checkin[1].checkout_image),
+                    "last_checkin": str(last_checkin[1]['check_in']),
+                    "last_checkin_image": str(last_checkin[1].checkin_image),
                     "checkin": str(last_checkin[0]['check_in']),
                     "checkin_image": str(last_checkin[0].checkin_image),
                 }
@@ -107,6 +112,8 @@ class AttendanceController(http.Controller):
                     "job": employee_rfid['job_title'],
                     "department": department['name'],
                     "avatar": str(employee_rfid['image_1920']),
+                    "last_checkin": str(last_checkin[1]['check_in']),
+                    "last_checkin_image": str(last_checkin[1].checkin_image),
                     "last_checkout": str(last_checkin[1].check_out),
                     "last_checkout_image": str(last_checkin[1].checkout_image),
                     "checkin": str(last_checkin[0]['check_in']),
@@ -127,11 +134,8 @@ class AttendanceController(http.Controller):
                     "last_checkout_image": str(last_checkin[1].checkout_image),
                     "checkin": str(last_checkin[0]['check_in']),
                     "checkin_image": str(last_checkin[0].checkin_image),
-                    "checkout": str(last_checkin[0].check_out),
-                    "checkout_image": str(last_checkin[0].check_out)
                 }
         return Response(json.dumps(data, ensure_ascii=False))
-
     # api checkin
     @http.route('/attendance_controller/employee-checkin', type='json', auth='public',
                 methods=['POST'], cors='*', csrf=False)
