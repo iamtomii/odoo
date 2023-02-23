@@ -4,12 +4,14 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 from operator import itemgetter
+from datetime import datetime
 
 import pytz
 from odoo import models, fields, api, exceptions, _
 from odoo.tools import format_datetime
 from odoo.osv.expression import AND, OR
 from odoo.tools.float_utils import float_is_zero
+from pytz import timezone
 
 
 class HrAttendance(models.Model):
@@ -25,6 +27,9 @@ class HrAttendance(models.Model):
         readonly=True)
     check_in = fields.Datetime(string="Check In", default=fields.Datetime.now, required=True)
     check_out = fields.Datetime(string="Check Out")
+    date_attendance = fields.Date(string="Date Attendance",compute='_compute_date_attendance', default=fields.Datetime.now, required=True)
+    time_checkin = fields.Float(string='Time Check In',compute='_extract_time_checkin', store=True, readonly=True)
+    time_checkout = fields.Float(string='Time Check Out',compute='_extract_time_checkout', store=True, readonly=True)
     worked_hours = fields.Float(string='Worked Hours', compute='_compute_worked_hours', store=True, readonly=True)
 
     def name_get(self):
@@ -43,12 +48,51 @@ class HrAttendance(models.Model):
                 }))
         return result
 
+    def conv_time_float(self, value):
+        vals = value.split(':')
+        t, hours = divmod(float(vals[0]), 24)
+        t, minutes = divmod(float(vals[1]), 60)
+        minutes = minutes / 60.0
+        return hours + minutes
+    @api.depends('check_in')
+    def _extract_time_checkin(self):
+        zone = timezone('Asia/Ho_Chi_Minh')
+        for attendance in self:
+            if attendance.check_in:
+                attendance.time_checkin=self.conv_time_float(str(attendance.check_in.astimezone(zone).time()))
+            else:
+                attendance.time_checkin=False
+    @api.depends('check_out')
+    def _extract_time_checkout(self):
+        zone = timezone('Asia/Ho_Chi_Minh')
+        for attendance in self:
+            if attendance.check_out:
+                attendance.time_checkout=self.conv_time_float(str(attendance.check_out.astimezone(zone).time()))
+            else:
+                attendance.time_checkout=False
+    @api.depends('check_in')
+    def _compute_date_attendance(self):
+        for attendance in self:
+            if attendance.check_in:
+                attendance.date_attendance=attendance.check_in
+            else:
+                attendance.date_attendance=False
     @api.depends('check_in', 'check_out')
     def _compute_worked_hours(self):
         for attendance in self:
             if attendance.check_out and attendance.check_in:
                 delta = attendance.check_out - attendance.check_in
-                attendance.worked_hours = delta.total_seconds() / 3600.0
+                beta = delta.total_seconds() / 3600.0
+                if (attendance.time_checkin <= 12.0) and (attendance.time_checkout >= 13.0):
+                    attendance.worked_hours = beta-1.0
+                elif (12.0<=attendance.time_checkin <= 13.0) and (attendance.time_checkout >= 13.0):
+                    tmp=13.0-attendance.time_checkin
+                    attendance.worked_hours = beta-tmp
+                elif (attendance.time_checkin <=12.0) and (12<=attendance.time_checkout<=13.0):
+                    tmp=attendance.time_checkout-12.0
+                    attendance.worked_hours=beta-tmp
+                else:
+                    attendance.worked_hours = beta
             else:
                 attendance.worked_hours = False
 

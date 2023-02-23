@@ -482,3 +482,4 @@ class LibraryController(http.Controller):
             list_type.append(type_id.code.replace("_"," "))
         title_type.extend(list(set(list_type)))
         return title_type
+

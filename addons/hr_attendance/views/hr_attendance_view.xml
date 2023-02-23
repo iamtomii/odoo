@@ -9,8 +9,11 @@
         <field name="arch" type="xml">
             <tree string="Employee attendances" edit="0" sample="1">
                 <field name="employee_id"/>
-                <field name="check_in"/>
-                <field name="check_out"/>
+                <field name="check_in" optional="hide"/>
+                <field name="check_out" optional="hide"/>
+                <field name="date_attendance"/>
+                <field name="time_checkin" widget="float_time"/>
+                <field name="time_checkout" widget="float_time"/>
                 <field name="worked_hours" string="Work Hours" widget="float_time"/>
             </tree>
         </field>
@@ -37,6 +40,8 @@
                 <field name="employee_id"/>
                 <field name="check_in"/>
                 <field name="check_out"/>
+                <field name="date_attendance"/>
+
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_global_click">
@@ -67,6 +72,7 @@
                 <sheet>
                     <group>
                         <field name="employee_id"/>
+                        <field name="date_attendance"/>
                         <field name="check_in"/>
                         <field name="check_out"/>
                     </group>
@@ -136,6 +142,11 @@
                 The attendance records of your employees will be displayed here.
             </p>
         </field>
+    </record>
+    <record id="hr_attendance_action_record" model="ir.actions.act_window">
+        <field name="name">Attendances</field>
+        <field name="res_model">hr.attendance</field>
+        <field name="view_mode">form,tree</field>
     </record>
 
     <record id="hr_attendance_action_overview" model="ir.actions.act_window">

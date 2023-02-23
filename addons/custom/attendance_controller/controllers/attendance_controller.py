@@ -29,6 +29,7 @@ class AttendanceController(http.Controller):
         name = employee_rfid['name']
         department = http.request.env['hr.department'].sudo().search([["id", "=", int(employee_rfid['department_id'])]])
         if len(last_checkin) == 0:
+            print("1")
             data = {
                 "id": employee_rfid['id'],
                 "name": name,
@@ -39,6 +40,7 @@ class AttendanceController(http.Controller):
                 "avatar": str(employee_rfid['image_1920']),
             }
         elif len(last_checkin) < 2:
+            print("2")
             data = {
                 "id": employee_rfid['id'],
                 "name": name,
@@ -54,6 +56,8 @@ class AttendanceController(http.Controller):
             }
         else:
             if not last_checkin[0].check_out:
+                print("3")
+
                 data = {
                     "id": employee_rfid['id'],
                     "name": name,
@@ -68,6 +72,8 @@ class AttendanceController(http.Controller):
                     "last_checkout_image": str(last_checkin[1].checkout_image),
                 }
             elif last_checkin[0].check_out is not False:
+                print("4")
+
                 data = {
                     "id": employee_rfid['id'],
                     "name": name,
@@ -82,6 +88,8 @@ class AttendanceController(http.Controller):
                     "last_checkout_image": str(last_checkin[1].checkout_image),
                 }
             else:
+                print("5")
+
                 data = {
                     "id": employee_rfid['id'],
                     "name": name,

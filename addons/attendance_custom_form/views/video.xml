@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="video_list_view" model="ir.ui.view">
+        <field name="name">video.list.view </field>
+        <field name="model">hr.video</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="attendance_id"/>
+                <field name="checkin_video"/>
+                <field name="checkout_video"/>
+            </tree>
+        </field>
+    </record>
+    <record id="video_form_view" model="ir.ui.view">
+        <field name="name">video.form.view</field>
+        <field name="model">hr.video</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                <field name="attendance_id"/>
+                <field name="checkin_video"/>
+                <field name="checkout_video"/>
+                    </group>
+                </group>
+
+            </form>
+        </field>
+    </record>
+    <record id="action_hr_attendance_video" model="ir.actions.act_window">
+        <field name="name">Attendance Video</field>
+        <field name="res_model">hr.video</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

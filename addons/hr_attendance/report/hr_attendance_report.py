@@ -13,6 +13,8 @@ class HRAttendanceReport(models.Model):
     employee_id = fields.Many2one('hr.employee', string="Employee", readonly=True)
     check_in = fields.Date("Check In", readonly=True)
     worked_hours = fields.Float("Hours Worked", readonly=True)
+    time_checkin = fields.Float("Time Check In", readonly=True)
+    time_checkout = fields.Float("Time Check Out", readonly=True)
     overtime_hours = fields.Float("Extra Hours", readonly=True)
 
     @api.model
@@ -23,7 +25,9 @@ class HRAttendanceReport(models.Model):
                 hr_employee.department_id,
                 hra.employee_id,
                 hra.check_in,
-                hra.worked_hours,
+                hra.time_checkin,
+                hra.time_checkout,
+                hra.worked_hours,     
                 coalesce(ot.duration, 0) as overtime_hours
         """
 
@@ -36,7 +40,9 @@ class HRAttendanceReport(models.Model):
                     row_number() over (partition by employee_id, CAST(check_in AS DATE)) as ot_check,
                     employee_id,
                     CAST(check_in as DATE) as check_in,
-                    worked_hours
+                    worked_hours,
+                    time_checkin,
+                    time_checkout
                 FROM
                     hr_attendance
             ) as hra

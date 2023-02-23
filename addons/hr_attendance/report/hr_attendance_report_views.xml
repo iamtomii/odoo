@@ -38,6 +38,9 @@
                 <field name="check_in"/>
                 <field name="overtime_hours" type="measure" />
                 <field name="worked_hours" type="measure" />
+                <field name="time_checkin" type="measure" widget="float-time"/>
+                <field name="time_checkout" type="measure" widget="float-time"/>
+
             </graph>
         </field>
     </record>

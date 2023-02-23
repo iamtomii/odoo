@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="view_attendance_custom_form" model="ir.ui.view">
+            <field name="name">attendance_custom_form.view.form</field>
+            <field name="model">hr.attendance</field>
+            <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet/group" position="inside">
+                    <field name="video_base64"/>
+                    <video width="320" height="240" controls="">
+                      <source src="data:video/webm;base64,{{ record.video_base64 }}" type="video/webm"/>
+                    </video>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
